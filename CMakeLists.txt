@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-set(EXECUTABLE_NAME fallout2-ce)
+if(AURORAOS)
+    set(AURORA_ORGNAME ru.sashikknox)
+    set(AURORA_APPNAME fallout2ce)
+    set(EXECUTABLE_NAME ${AURORA_ORGNAME}.${AURORA_APPNAME})
+else()
+    set(EXECUTABLE_NAME fallout2-ce)
+endif()
 
 if(APPLE)
     if(IOS)
@@ -24,6 +30,47 @@ if(ANDROID)
     add_library(${EXECUTABLE_NAME} SHARED)
 else()
     add_executable(${EXECUTABLE_NAME} WIN32 MACOSX_BUNDLE)
+endif()
+
+if(AURORAOS)
+    add_compile_definitions(
+        AURORAOS
+        AURORA_ORGNAME="${AURORA_ORGNAME}"
+        AURORA_APPNAME="${AURORA_APPNAME}"
+    )
+    find_package (Qt5 COMPONENTS 
+        Core 
+        # Network 
+        Qml 
+        # Gui 
+        Quick 
+        # LinguistTools 
+        DBus 
+        REQUIRED)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SAILFISHSILICA REQUIRED sailfishsilica)
+    pkg_check_modules(LIBSDL REQUIRED sdl2)
+    include(FindPkgConfig)
+    pkg_search_module(AURORA auroraapp REQUIRED)
+    pkg_search_module(AURORA auroraapp_i18n REQUIRED)
+
+    target_include_directories(${EXECUTABLE_NAME} PRIVATE
+       ${AURORA_INCLUDE_DIRS}
+       ${LIBSDL_INCLUDE_DIRS}
+       "os/auroraos"
+    )
+    target_link_libraries(${EXECUTABLE_NAME}
+        Qt5::Quick
+        # Qt5::DBus
+        ${AURORA_LDFLAGS}
+        ${SAILFISHSILICA_LDFLAGS}
+        ${LIBSDL_LDFLAGS}
+    )
+
+    target_sources(${EXECUTABLE_NAME} PUBLIC
+        "os/auroraos/aurora_launcher.cpp"
+        "os/auroraos/aurora_launcher.h"
+    )
 endif()
 
 target_sources(${EXECUTABLE_NAME} PUBLIC
@@ -362,19 +409,23 @@ add_subdirectory("third_party/fpattern")
 target_link_libraries(${EXECUTABLE_NAME} ${FPATTERN_LIBRARY})
 target_include_directories(${EXECUTABLE_NAME} PRIVATE ${FPATTERN_INCLUDE_DIR})
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT AURORAOS)
     add_subdirectory("third_party/zlib")
     add_subdirectory("third_party/sdl2")
 else()
-    find_package(ZLIB)
-    find_package(SDL2)
+    find_package(ZLIB REQUIRED)
+    if (NOT AURORAOS)
+        find_package(SDL2 REQUIRED)
+    endif()
 endif()
 
 target_link_libraries(${EXECUTABLE_NAME} ${ZLIB_LIBRARIES})
 target_include_directories(${EXECUTABLE_NAME} PRIVATE ${ZLIB_INCLUDE_DIRS})
 
-target_link_libraries(${EXECUTABLE_NAME} ${SDL2_LIBRARIES})
-target_include_directories(${EXECUTABLE_NAME} PRIVATE ${SDL2_INCLUDE_DIRS})
+if(NOT AURORAOS)
+target_link_libraries(${EXECUTABLE_NAME} -L/usr/lib64 -lSDL2)
+target_include_directories(${EXECUTABLE_NAME} PRIVATE "/usr/include/SDL2")
+endif()
 
 if(APPLE)
     if(IOS)
@@ -400,4 +451,43 @@ if(APPLE)
     endif()
 
     include(CPack)
+elseif(AURORAOS)
+    set(AURORARES )
+    add_custom_target(distfiles
+        SOURCES
+            rpm/fallout2ce.spec
+            os/auroraos/icon_86.png
+            os/auroraos/icon_108.png
+            os/auroraos/icon_128.png
+            os/auroraos/icon_172.png
+            os/auroraos/${EXECUTABLE_NAME}.desktop
+            os/auroraos/qml/main.qml
+            os/auroraos/qml/launcher.qml
+    )
+
+
+    install(DIRECTORY os/auroraos/qml
+        DESTINATION /usr/share/${EXECUTABLE_NAME}
+    )
+    install(FILES os/auroraos/${EXECUTABLE_NAME}.desktop
+        DESTINATION /usr/share/applications
+    )
+
+    install(FILES os/auroraos/${EXECUTABLE_NAME}.desktop
+        DESTINATION /usr/share/applications
+    )
+    install(FILES os/auroraos/icon_86.png
+    DESTINATION /usr/share/icons/hicolor/86x86/apps RENAME ${EXECUTABLE_NAME}.png
+    )
+    install(FILES os/auroraos/icon_108.png
+    DESTINATION /usr/share/icons/hicolor/108x108/apps RENAME ${EXECUTABLE_NAME}.png
+    )
+    install(FILES os/auroraos/icon_128.png
+    DESTINATION /usr/share/icons/hicolor/128x128/apps RENAME ${EXECUTABLE_NAME}.png
+    )
+    install(FILES os/auroraos/icon_172.png
+    DESTINATION /usr/share/icons/hicolor/172x172/apps RENAME ${EXECUTABLE_NAME}.png
+    )
+
+    install(TARGETS ${EXECUTABLE_NAME} DESTINATION /usr/bin)
 endif()

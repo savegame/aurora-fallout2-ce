@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+X-Nemo-Application-Type=silica-qt5
+Icon=ru.sashikknox.fallout2ce
+Exec=ru.sashikknox.fallout2ce
+Name=Fallout 2 CE
+Name[en]=Fallout 2 CE
+
+[X-Application]
+Permissions=UserDirs;
+OrganizationName=ru.sashikknox
+ApplicationName=fallout2ce
