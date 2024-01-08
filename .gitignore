@@ -391,3 +391,6 @@ FodyWeavers.xsd
 # CMake
 /out
 /build
+
+# other
+build_*

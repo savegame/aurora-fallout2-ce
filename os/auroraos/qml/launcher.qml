@@ -1,11 +1,12 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import Sailfish.Pickers 1.0
+import ru.sashikknox 1.0
 
 Page {
     id: page
 
-    property string resourcesPath: "Documents/Fallout2" // TODO: get it from AuroraLauncher singleton
+    property string resourcesPath: AuroraData.resourcesPath
 
     SilicaFlickable {
         anchors.fill: parent
@@ -39,13 +40,15 @@ Page {
                     id: resourcesButton
                     onClicked:  pageStack.push(folderPickerPage)
                     icon.source: "image://theme/icon-m-file-folder"
-                    icon.width: Theme.iconSizeSmall
-                    icon.height: Theme.iconSizeSmall
+                    icon.width: Theme.iconSizeMedium
+                    icon.height: Theme.iconSizeMedium
                 }
             }
 
             Button {
-                onClicked: console.log("Need close app")
+                onClicked: AuroraData.quit()
+
+                anchors.horizontalCenter: parent.horizontalCenter
                 text: qsTr("Начать игру")
             }
         }
@@ -55,7 +58,11 @@ Page {
         id: folderPickerPage
         FolderPickerPage {
             dialogTitle: qsTr("Выбирите папку с ресурсами игры")
-            onSelectedPathChanged: page.resourcesPath = selectedPath
+            onSelectedPathChanged: AuroraData.resourcesPath = selectedPath
         }
+    }
+
+    Component.onCompleted: {
+        console.log("AuroraData", AuroraData)
     }
 }

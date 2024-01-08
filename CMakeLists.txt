@@ -50,14 +50,22 @@ if(AURORAOS)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(SAILFISHSILICA REQUIRED sailfishsilica)
     pkg_check_modules(LIBSDL REQUIRED sdl2)
+    pkg_check_modules(WAYLAND_CLIENT REQUIRED wayland-client)
+    
     include(FindPkgConfig)
     pkg_search_module(AURORA auroraapp REQUIRED)
     pkg_search_module(AURORA auroraapp_i18n REQUIRED)
+    
+    set(AUTOMOC ON)
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)
+    set(short_name ${AURORA_APPNAME})
 
     target_include_directories(${EXECUTABLE_NAME} PRIVATE
        ${AURORA_INCLUDE_DIRS}
        ${LIBSDL_INCLUDE_DIRS}
+       ${WAYLAND_CLIENT_INCLUDE_DIRS}
        "os/auroraos"
+       ${CMAKE_BINARY_DIR}
     )
     target_link_libraries(${EXECUTABLE_NAME}
         Qt5::Quick
@@ -65,6 +73,7 @@ if(AURORAOS)
         ${AURORA_LDFLAGS}
         ${SAILFISHSILICA_LDFLAGS}
         ${LIBSDL_LDFLAGS}
+        ${WAYLAND_CLIENT_LDFLAGS}
     )
 
     target_sources(${EXECUTABLE_NAME} PUBLIC

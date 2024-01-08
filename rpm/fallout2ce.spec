@@ -4,7 +4,7 @@ Release:    1
 Version:    1.0
 Group:      Amusements/Games
 License:    GPLv2
-BuildArch:  %{_arch}
+#BuildArch:  %{_arch}
 URL:        https://github.com/savegame/lp-public
 Source0:    %{name}.tar.gz
 # Requires:   SDL2
@@ -19,6 +19,8 @@ Source0:    %{name}.tar.gz
 BuildRequires:   cmake
 BuildRequires:   pkgconfig(audioresource)
 BuildRequires:   pkgconfig(sdl2)
+BuildRequires:   pkgconfig(sailfishsilica)
+BuildRequires:   pkgconfig(wayland-client)
 # BuildRequires: pulseaudio-devel,  wayland-devel, rsync
 # BuildRequires: libGLESv2-devel, wayland-egl-devel
 # BuildRequires: wayland-protocols-devel, libusb-devel
@@ -46,6 +48,8 @@ Fallout 2 CE - open source game engien for Fallout 2 original game
 # cmake -DCMAKE_BUILD_TYPE=Debug -DAURORAOS=ON ..
 
 %build
+echo `pwd`
+moc os/auroraos/aurora_launcher.h -o moc_aurora_launcher.cpp
 mkdir -p %{build_folder}
 cd %{build_folder}
 cmake -DCMAKE_BUILD_TYPE=Debug -DAURORAOS=ON ..

@@ -45,6 +45,10 @@ int screenGetHeight();
 int screenGetVisibleHeight();
 void handleWindowSizeChanged();
 void renderPresent();
+#ifdef AURORAOS
+void handleDisplayOrientationChanged(const SDL_DisplayOrientation &orientation);
+void setWideScreenMovie(bool widescreen);
+#endif
 
 } // namespace fallout
 

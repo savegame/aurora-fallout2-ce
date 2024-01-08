@@ -7,6 +7,6 @@ Name=Fallout 2 CE
 Name[en]=Fallout 2 CE
 
 [X-Application]
-Permissions=UserDirs;
+Permissions=UserDirs;RemovableMedia
 OrganizationName=ru.sashikknox
 ApplicationName=fallout2ce

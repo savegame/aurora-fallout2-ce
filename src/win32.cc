@@ -70,16 +70,10 @@ int main(int argc, char* argv[])
     chdir(SDL_AndroidGetExternalStoragePath());
 #endif
 #if AURORAOS
-    AuroraLauncher launcher(argc, argv);
-
-    if (argc > 1) {
-        chdir(argv[1]);
-    } else {
-        QString path = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-        path += QStringLiteral("/Fallout2");
-        chdir(path.toLocal8Bit().data());
-        qDebug() << "Change dir to" << path;
-    }
+    // AuroraLauncher launcher(0, nullptr);
+    // launcher.exec();
+    QString path = AuroraData::getInstance()->resourcesPath();
+    chdir(path.toLocal8Bit().data());
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #endif

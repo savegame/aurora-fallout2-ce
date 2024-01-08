@@ -1127,6 +1127,13 @@ void _GNW95_process_message()
                 break;
             }
             break;
+#ifdef AURORAOS
+        case SDL_DISPLAYEVENT:
+            if (e.display.event == SDL_DISPLAYEVENT_ORIENTATION) {
+                handleDisplayOrientationChanged((SDL_DisplayOrientation)e.display.data1);
+            }
+            break;
+#endif
         case SDL_QUIT:
             exit(EXIT_SUCCESS);
             break;

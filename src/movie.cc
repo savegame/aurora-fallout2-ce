@@ -601,6 +601,9 @@ void _movieStop()
     if (_running) {
         gMovieFlags |= MOVIE_EXTENDED_FLAG_0x02;
     }
+#ifdef AURORAOS
+    setWideScreenMovie(false);
+#endif
 }
 
 // 0x487164
@@ -828,6 +831,10 @@ static int _movieStart(int win, char* filePath, int (*a3)())
     if (gMovieFileStream == NULL) {
         return 1;
     }
+
+#ifdef AURORAOS
+    setWideScreenMovie(true);
+#endif
 
     gMovieFileStreamPointerKey = ptrToInt(gMovieFileStream);
 

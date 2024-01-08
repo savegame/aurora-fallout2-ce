@@ -14,13 +14,32 @@
 #include "window_manager.h"
 #include "window_manager_private.h"
 
+#ifdef AURORAOS
+#include <os/auroraos/aurora_launcher.h>
+#include <SDL_syswm.h>
+#include <wayland-client-protocol.h>
+#endif
+
 namespace fallout {
 
 static bool createRenderer(int width, int height);
 static void destroyRenderer();
 
+#ifdef AURORAOS
+// wide screen movies
+float _movieHeight = 324;
+// movie mode
+bool _widescreen = false;
+// screen orientation
+SDL_DisplayOrientation _orientation = SDL_ORIENTATION_UNKNOWN;
+double _rotate_angle = -90.0; 
+SDL_Rect _src_rect;
+SDL_FRect _dest_rect;
+bool _nativeLandscape = false;
+#endif
 // screen rect
 Rect _scr_size;
+
 
 // 0x6ACA18
 void (*_scr_blit)(unsigned char* src, int src_pitch, int a3, int src_x, int src_y, int src_width, int src_height, int dest_x, int dest_y) = _GNW95_ShowRect;
@@ -116,6 +135,17 @@ int _GNW95_init_mode_ex(int width, int height, int bpp)
             if (configGetInt(&resolutionConfig, "MAIN", "SCR_HEIGHT", &screenHeight)) {
                 height = screenHeight;
             }
+#ifdef AURORAOS
+            switch(AuroraData::getInstance()->resolution()) {
+            case AuroraData::Default:
+                width = 640;
+                height = 480;
+                break;
+            case AuroraData::Large:
+                width = 1024;
+                height = 768;
+            }
+#endif
 
             bool windowed;
             if (configGetBool(&resolutionConfig, "MAIN", "WINDOWED", &windowed)) {
@@ -180,16 +210,29 @@ int _GNW95_init_window(int width, int height, bool fullscreen, int scale)
         }
 
         Uint32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI;
-
+#ifdef AURORAOS
+        fullscreen = true;
+#endif
         if (fullscreen) {
             windowFlags |= SDL_WINDOW_FULLSCREEN;
         }
 
+#ifdef AURORAOS
+        gSdlWindow = SDL_CreateWindow(gProgramWindowTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0, windowFlags);
+        SDL_DisplayOrientation orientation = SDL_GetDisplayOrientation(0);
+        if (orientation == SDL_ORIENTATION_PORTRAIT_FLIPPED) {
+            handleDisplayOrientationChanged(SDL_ORIENTATION_LANDSCAPE);
+        } else if (orientation == SDL_ORIENTATION_PORTRAIT || _orientation != SDL_ORIENTATION_UNKNOWN) {
+            handleDisplayOrientationChanged(SDL_ORIENTATION_LANDSCAPE_FLIPPED);
+        } else {
+            handleDisplayOrientationChanged(orientation);
+        }
+#else
         gSdlWindow = SDL_CreateWindow(gProgramWindowTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width * scale, height * scale, windowFlags);
+#endif
         if (gSdlWindow == NULL) {
             return -1;
         }
-
         if (!createRenderer(width, height)) {
             destroyRenderer();
 
@@ -364,10 +407,16 @@ static bool createRenderer(int width, int height)
     if (gSdlRenderer == NULL) {
         return false;
     }
-
+#ifdef AURORAOS
+    if (SDL_RenderSetLogicalSize(gSdlRenderer, height, width * float(height)/_movieHeight) != 0) {
+        return false;
+    }
+    setWideScreenMovie(true);
+#else
     if (SDL_RenderSetLogicalSize(gSdlRenderer, width, height) != 0) {
         return false;
     }
+#endif
 
     gSdlTexture = SDL_CreateTexture(gSdlRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);
     if (gSdlTexture == NULL) {
@@ -411,11 +460,114 @@ void handleWindowSizeChanged()
     createRenderer(screenGetWidth(), screenGetHeight());
 }
 
+#ifdef AURORAOS
+void handleDisplayOrientationChanged(const SDL_DisplayOrientation &orientation) 
+{
+    if (_orientation == orientation)
+        return;
+    if (_nativeLandscape) {
+        if (orientation != SDL_ORIENTATION_PORTRAIT 
+            && orientation != SDL_ORIENTATION_PORTRAIT_FLIPPED) 
+        {
+            return;
+        }
+    } else {
+        if (orientation != SDL_ORIENTATION_LANDSCAPE 
+            && orientation != SDL_ORIENTATION_LANDSCAPE_FLIPPED) 
+        {
+            return;
+        }
+    }
+    _orientation = orientation;
+
+    float hMovie = (_widescreen) ? _movieHeight : 480.0;
+    _src_rect = {
+        0, 
+        int((480.0 - hMovie) * 0.5),
+        640,
+        hMovie
+    };
+    _dest_rect = {
+        0.0,
+        0.0,
+        640.0 * (480.0 / hMovie),
+        480.0
+    };
+
+    _dest_rect.x = (_dest_rect.h - _dest_rect.w) * 0.5;
+    _dest_rect.y = -_dest_rect.x;
+
+    // say compositor aour buffer orientation
+    struct SDL_SysWMinfo wmInfo;
+    SDL_VERSION(&wmInfo.version);
+    if (SDL_GetWindowWMInfo(gSdlWindow, &wmInfo)) {
+        if (_nativeLandscape) {
+            // NativeLandscape
+            if (_orientation == SDL_ORIENTATION_PORTRAIT) 
+            {
+                _rotate_angle = 0;
+                wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_NORMAL);
+            }
+            else if (_orientation == SDL_ORIENTATION_PORTRAIT_FLIPPED)
+            {
+                _rotate_angle = 180;
+                wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_180);
+            }
+        } else {
+
+            if (_orientation == SDL_ORIENTATION_LANDSCAPE) {
+                _rotate_angle = -90;
+                wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_90);
+            } else if (_orientation == SDL_ORIENTATION_LANDSCAPE_FLIPPED) {
+                _rotate_angle = 90;
+                wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_270);
+            }
+        }
+    } // else ERROR, but not too critical
+}
+
+void setWideScreenMovie(bool widescreen) 
+{
+    // if (_widescreen == widescreen) 
+        // return;
+    _widescreen = widescreen;
+    if (_widescreen) {
+        SDL_RenderSetLogicalSize(gSdlRenderer, 480, 640.0 * 480.0 / _movieHeight);
+    } else {
+        SDL_RenderSetLogicalSize(gSdlRenderer, 480, 640.0);
+    }
+
+    // force recalc srcrect and dstrect
+    float hMovie = (_widescreen) ? _movieHeight : 480.0;
+    _src_rect = {
+        0, 
+        int((480.0 - hMovie) * 0.5),
+        640,
+        hMovie
+    };
+    _dest_rect = {
+        0.0,
+        0.0,
+        640.0 * (480.0 / hMovie),
+        480.0
+    };
+
+    _dest_rect.x = (_dest_rect.h - _dest_rect.w) * 0.5;
+    _dest_rect.y = -_dest_rect.x;
+}
+#endif
+
 void renderPresent()
 {
     SDL_UpdateTexture(gSdlTexture, NULL, gSdlTextureSurface->pixels, gSdlTextureSurface->pitch);
     SDL_RenderClear(gSdlRenderer);
+#ifdef AURORAOS
+    SDL_RenderCopyExF(gSdlRenderer, gSdlTexture, &_src_rect, &_dest_rect, 
+        _rotate_angle, 
+        nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+#else
     SDL_RenderCopy(gSdlRenderer, gSdlTexture, NULL, NULL);
+#endif
     SDL_RenderPresent(gSdlRenderer);
 }
 
