@@ -15,7 +15,7 @@ Source0:    %{name}.tar.gz
 # Requires:   glib2
 # Requires:   libaudioresource
 
-# BuildRequires:   git
+BuildRequires:   git
 BuildRequires:   cmake
 BuildRequires:   pkgconfig(audioresource)
 BuildRequires:   pkgconfig(sdl2)
