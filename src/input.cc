@@ -1092,12 +1092,21 @@ void _GNW95_process_message()
             handleMouseEvent(&e);
             break;
         case SDL_FINGERDOWN:
+#ifdef AURORAOS
+            modifyFingerPos(e.tfinger);
+#endif
             touch_handle_start(&(e.tfinger));
             break;
         case SDL_FINGERMOTION:
+#ifdef AURORAOS
+            modifyFingerPos(e.tfinger);
+#endif
             touch_handle_move(&(e.tfinger));
             break;
         case SDL_FINGERUP:
+#ifdef AURORAOS
+            modifyFingerPos(e.tfinger);
+#endif
             touch_handle_end(&(e.tfinger));
             break;
         case SDL_KEYDOWN:

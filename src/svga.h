@@ -48,6 +48,7 @@ void renderPresent();
 #ifdef AURORAOS
 void handleDisplayOrientationChanged(const SDL_DisplayOrientation &orientation);
 void setWideScreenMovie(bool widescreen);
+void modifyFingerPos(SDL_TouchFingerEvent &tfinger);
 #endif
 
 } // namespace fallout

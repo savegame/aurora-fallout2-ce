@@ -555,6 +555,18 @@ void setWideScreenMovie(bool widescreen)
     _dest_rect.x = (_dest_rect.h - _dest_rect.w) * 0.5;
     _dest_rect.y = -_dest_rect.x;
 }
+
+void modifyFingerPos(SDL_TouchFingerEvent &tfinger) 
+{
+    float temp = tfinger.x;
+    if (_orientation == SDL_ORIENTATION_LANDSCAPE) {
+        tfinger.x = 1.0 - tfinger.y;
+        tfinger.y = temp;
+    } else {
+        tfinger.x = tfinger.y;
+        tfinger.y = 1.0 - temp;
+    }
+}
 #endif
 
 void renderPresent()
