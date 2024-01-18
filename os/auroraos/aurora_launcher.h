@@ -4,11 +4,13 @@
 #include <QObject>
 #include <QScopedPointer>
 #include <memory>
+#include <SDL.h>
 
 class AuroraLauncherPrivate;
 class AuroraDataPrivate;
 class QQmlEngine;
 class QJSEngine;
+class SDL_Renderer;
 
 class AuroraLauncher
 {
@@ -42,6 +44,13 @@ public:
 
     ResolutionMode resolution() const;
     void setResolution(ResolutionMode mode);
+
+    void setOrientation(SDL_DisplayOrientation orientation);
+    SDL_DisplayOrientation orientation() const;
+
+    void initSDLPart(SDL_Renderer *renderer);
+    void drawSDLUi(SDL_Renderer *renderer);
+    void hideSDLUi(bool hide);
 signals:
     void quit();
     void dataChanged();

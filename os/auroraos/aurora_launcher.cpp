@@ -5,6 +5,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include <SDL.h>
+#include <SDL_image.h>
+
 class AuroraLauncherPrivate {
 public:
     AuroraLauncherPrivate(AuroraLauncher *parent, int argc, char** argv) 
@@ -38,6 +41,11 @@ public:
     bool m_close = false;
 };
 
+struct _Button {
+    SDL_Rect dst_rect;
+};
+typedef struct _Button Button;
+
 class AuroraDataPrivate
 {
 public:
@@ -49,6 +57,13 @@ public:
 
     QString m_resourcesPath;
     AuroraData::ResolutionMode m_resolution = AuroraData::Default;
+
+    SDL_Texture *m_texture = nullptr;
+    SDL_DisplayOrientation m_orientation = SDL_ORIENTATION_UNKNOWN;
+    double m_rotate_angle = 90;
+    bool m_hideUi = false;
+    Button m_save;
+    Button m_load;
 };
 
 AuroraLauncher::AuroraLauncher(int argc, char** argv) 
@@ -102,6 +117,7 @@ AuroraData::AuroraData(QObject *parent)
 
 AuroraData::~AuroraData()
 {
+    SDL_free(d->m_texture);
     delete d;
 }
 
@@ -136,6 +152,86 @@ void AuroraData::setResolution(ResolutionMode mode)
     d->m_resolution;
     emit resolutionChanged();
     emit dataChanged();
+}
+
+void AuroraData::setOrientation(SDL_DisplayOrientation orientation)
+{
+    d->m_orientation = orientation;
+    bool _nativeLandscape = false;
+
+    if (_nativeLandscape) {
+        // NativeLandscape
+        if (d->m_orientation == SDL_ORIENTATION_PORTRAIT) 
+        {
+            d->m_rotate_angle = 0;
+        }
+        else if (d->m_orientation == SDL_ORIENTATION_PORTRAIT_FLIPPED)
+        {
+            d->m_rotate_angle = 180;
+        }
+    } else {
+
+        if (d->m_orientation == SDL_ORIENTATION_LANDSCAPE) {
+            d->m_rotate_angle = -90;
+
+            d->m_save.dst_rect = {
+                10, 52,
+                32, 32
+            };
+            d->m_load.dst_rect = {
+                10, 10,
+                32, 32
+            };
+        } else if (d->m_orientation == SDL_ORIENTATION_LANDSCAPE_FLIPPED) {
+            d->m_rotate_angle = 90;
+
+            d->m_load.dst_rect = {
+                480 - 42, 640 - 42,
+                32, 32
+            };
+            d->m_save.dst_rect = {
+                480 - 42, 640 - 84,
+                32, 32
+            };
+        }
+    }
+}
+
+SDL_DisplayOrientation AuroraData::orientation() const
+{
+    return d->m_orientation;
+}
+
+void AuroraData::initSDLPart(SDL_Renderer *renderer) 
+{
+    Q_ASSERT_X(renderer, "Empty SDL_Renderer pointer", "");
+    
+    int r = IMG_Init(IMG_INIT_PNG);
+    if (r == 0) {
+        return;
+    }
+    d->m_texture = IMG_LoadTexture(renderer, "/usr/share/ru.sashikknox.fallout2ce/ui.png");
+}
+
+void AuroraData::hideSDLUi(bool hide) 
+{
+    d->m_hideUi = hide;
+}
+
+void AuroraData::drawSDLUi(SDL_Renderer *renderer)
+{
+    if (!d->m_texture || d->m_hideUi)
+        return;
+
+    SDL_Rect src_rect = {
+        0, 0,
+        32, 32
+    };
+    // save
+    SDL_RenderCopyEx(renderer, d->m_texture, &src_rect, &d->m_save.dst_rect, d->m_rotate_angle, NULL, SDL_FLIP_NONE);
+    // load
+    src_rect.x = 32;
+    SDL_RenderCopyEx(renderer, d->m_texture, &src_rect, &d->m_load.dst_rect, d->m_rotate_angle, NULL, SDL_FLIP_NONE);
 }
 
 #include "moc_aurora_launcher.cpp"

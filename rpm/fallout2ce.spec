@@ -19,6 +19,7 @@ BuildRequires:   git
 BuildRequires:   cmake
 BuildRequires:   pkgconfig(audioresource)
 BuildRequires:   pkgconfig(sdl2)
+BuildRequires:   pkgconfig(SDL2_image)
 BuildRequires:   pkgconfig(sailfishsilica)
 BuildRequires:   pkgconfig(wayland-client)
 # BuildRequires: pulseaudio-devel,  wayland-devel, rsync
@@ -66,6 +67,7 @@ cd %{build_folder}
 %{_datadir}/icons/hicolor/*
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/%{name}/qml/*
+%{_datadir}/%{name}/ui.png
 
 %changelog 
 * Wed Nov 14 2023 sashikknox <sashikknox@gmail.com>

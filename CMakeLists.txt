@@ -50,6 +50,7 @@ if(AURORAOS)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(SAILFISHSILICA REQUIRED sailfishsilica)
     pkg_check_modules(LIBSDL REQUIRED sdl2)
+    pkg_check_modules(SDLIMG REQUIRED SDL2_image)
     pkg_check_modules(WAYLAND_CLIENT REQUIRED wayland-client)
     
     include(FindPkgConfig)
@@ -63,6 +64,7 @@ if(AURORAOS)
     target_include_directories(${EXECUTABLE_NAME} PRIVATE
        ${AURORA_INCLUDE_DIRS}
        ${LIBSDL_INCLUDE_DIRS}
+       ${SDLIMG_INCLUDE_DIRS}
        ${WAYLAND_CLIENT_INCLUDE_DIRS}
        "os/auroraos"
        ${CMAKE_BINARY_DIR}
@@ -73,6 +75,7 @@ if(AURORAOS)
         ${AURORA_LDFLAGS}
         ${SAILFISHSILICA_LDFLAGS}
         ${LIBSDL_LDFLAGS}
+        ${SDLIMG_LDFLAGS}
         ${WAYLAND_CLIENT_LDFLAGS}
     )
 
@@ -496,6 +499,10 @@ elseif(AURORAOS)
     )
     install(FILES os/auroraos/icon_172.png
     DESTINATION /usr/share/icons/hicolor/172x172/apps RENAME ${EXECUTABLE_NAME}.png
+    )
+
+    install(FILES os/auroraos/ui.png
+    DESTINATION /usr/share/${EXECUTABLE_NAME} RENAME ui.png
     )
 
     install(TARGETS ${EXECUTABLE_NAME} DESTINATION /usr/bin)

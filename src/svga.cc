@@ -31,8 +31,8 @@ float _movieHeight = 324;
 // movie mode
 bool _widescreen = false;
 // screen orientation
-SDL_DisplayOrientation _orientation = SDL_ORIENTATION_UNKNOWN;
 double _rotate_angle = -90.0; 
+SDL_Point _wnd_size;
 SDL_Rect _src_rect;
 SDL_FRect _dest_rect;
 bool _nativeLandscape = false;
@@ -222,11 +222,12 @@ int _GNW95_init_window(int width, int height, bool fullscreen, int scale)
         SDL_DisplayOrientation orientation = SDL_GetDisplayOrientation(0);
         if (orientation == SDL_ORIENTATION_PORTRAIT_FLIPPED) {
             handleDisplayOrientationChanged(SDL_ORIENTATION_LANDSCAPE);
-        } else if (orientation == SDL_ORIENTATION_PORTRAIT || _orientation != SDL_ORIENTATION_UNKNOWN) {
+        } else if (orientation == SDL_ORIENTATION_PORTRAIT || AuroraData::getInstance()->orientation() != SDL_ORIENTATION_UNKNOWN) {
             handleDisplayOrientationChanged(SDL_ORIENTATION_LANDSCAPE_FLIPPED);
         } else {
             handleDisplayOrientationChanged(orientation);
         }
+        SDL_GetWindowSize(gSdlWindow, &_wnd_size.x, &_wnd_size.y);
 #else
         gSdlWindow = SDL_CreateWindow(gProgramWindowTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width * scale, height * scale, windowFlags);
 #endif
@@ -241,6 +242,10 @@ int _GNW95_init_window(int width, int height, bool fullscreen, int scale)
 
             return -1;
         }
+#ifdef AURORAOS
+        // return back fullscreen size
+        setWideScreenMovie(false);
+#endif
     }
 
     return 0;
@@ -412,6 +417,7 @@ static bool createRenderer(int width, int height)
         return false;
     }
     setWideScreenMovie(true);
+    AuroraData::getInstance()->initSDLPart(gSdlRenderer);
 #else
     if (SDL_RenderSetLogicalSize(gSdlRenderer, width, height) != 0) {
         return false;
@@ -463,7 +469,7 @@ void handleWindowSizeChanged()
 #ifdef AURORAOS
 void handleDisplayOrientationChanged(const SDL_DisplayOrientation &orientation) 
 {
-    if (_orientation == orientation)
+    if (AuroraData::getInstance()->orientation() == orientation)
         return;
     if (_nativeLandscape) {
         if (orientation != SDL_ORIENTATION_PORTRAIT 
@@ -478,7 +484,7 @@ void handleDisplayOrientationChanged(const SDL_DisplayOrientation &orientation)
             return;
         }
     }
-    _orientation = orientation;
+    AuroraData::getInstance()->setOrientation(orientation);
 
     float hMovie = (_widescreen) ? _movieHeight : 480.0;
     _src_rect = {
@@ -503,22 +509,22 @@ void handleDisplayOrientationChanged(const SDL_DisplayOrientation &orientation)
     if (SDL_GetWindowWMInfo(gSdlWindow, &wmInfo)) {
         if (_nativeLandscape) {
             // NativeLandscape
-            if (_orientation == SDL_ORIENTATION_PORTRAIT) 
+            if (AuroraData::getInstance()->orientation() == SDL_ORIENTATION_PORTRAIT) 
             {
                 _rotate_angle = 0;
                 wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_NORMAL);
             }
-            else if (_orientation == SDL_ORIENTATION_PORTRAIT_FLIPPED)
+            else if (AuroraData::getInstance()->orientation() == SDL_ORIENTATION_PORTRAIT_FLIPPED)
             {
                 _rotate_angle = 180;
                 wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_180);
             }
         } else {
 
-            if (_orientation == SDL_ORIENTATION_LANDSCAPE) {
+            if (AuroraData::getInstance()->orientation() == SDL_ORIENTATION_LANDSCAPE) {
                 _rotate_angle = -90;
                 wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_90);
-            } else if (_orientation == SDL_ORIENTATION_LANDSCAPE_FLIPPED) {
+            } else if (AuroraData::getInstance()->orientation() == SDL_ORIENTATION_LANDSCAPE_FLIPPED) {
                 _rotate_angle = 90;
                 wl_surface_set_buffer_transform(wmInfo.info.wl.surface, WL_OUTPUT_TRANSFORM_270);
             }
@@ -532,8 +538,10 @@ void setWideScreenMovie(bool widescreen)
         // return;
     _widescreen = widescreen;
     if (_widescreen) {
+        AuroraData::getInstance()->hideSDLUi(true);
         SDL_RenderSetLogicalSize(gSdlRenderer, 480, 640.0 * 480.0 / _movieHeight);
     } else {
+        AuroraData::getInstance()->hideSDLUi(false);
         SDL_RenderSetLogicalSize(gSdlRenderer, 480, 640.0);
     }
 
@@ -559,7 +567,7 @@ void setWideScreenMovie(bool widescreen)
 void modifyFingerPos(SDL_TouchFingerEvent &tfinger) 
 {
     float temp = tfinger.x;
-    if (_orientation == SDL_ORIENTATION_LANDSCAPE) {
+    if (AuroraData::getInstance()->orientation() == SDL_ORIENTATION_LANDSCAPE) {
         tfinger.x = 1.0 - tfinger.y;
         tfinger.y = temp;
     } else {
@@ -577,6 +585,7 @@ void renderPresent()
     SDL_RenderCopyExF(gSdlRenderer, gSdlTexture, &_src_rect, &_dest_rect, 
         _rotate_angle, 
         nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
+    AuroraData::getInstance()->drawSDLUi(gSdlRenderer);
 #else
     SDL_RenderCopy(gSdlRenderer, gSdlTexture, NULL, NULL);
 #endif

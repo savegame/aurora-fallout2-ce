@@ -66,6 +66,44 @@ $ sudo apt install libsdl2-2.0-0
 
 - Use Finder (macOS Catalina and later) or iTunes (Windows and macOS Mojave or earlier) to copy `master.dat`, `critter.dat`, `patch000.dat`, and `data` folder to "Fallout 2" app ([how-to](https://support.apple.com/HT210598)). Watch for file names - keep (or make) them lowercased (see [Configuration](#configuration)).
 
+### AuroraOS
+
+#### Play game
+> **NOTE**: See Android note on controls.
+
+- Put game resources to `~/Documents/Fallout2`
+- Run game 
+
+#### Build AuroraOS RPM 
+- Choose target you want
+    ```
+    sfdk egnine exec sb2-config -l
+    ```
+    its show you list of avaliable targets, like this 
+    ```
+    AuroraOS-5.0.0.60-base-aarch64.default
+    AuroraOS-5.0.0.60-base-aarch64
+    AuroraOS-5.0.0.60-base-armv7hl.default
+    AuroraOS-5.0.0.60-base-armv7hl
+    AuroraOS-5.0.0.60-base-x86_64.default
+    AuroraOS-5.0.0.60-base-x86_64
+    ```
+- Use taget `AuroraOS-5.0.0.60-base-aarch64` and prepare build 
+    ```
+    sfdk engine exec mb2 -t AuroraOS-5.0.0.60-base-aarch64 build-init
+    sfdk engine exec mb2 -t AuroraOS-5.0.0.60-base-aarch64 prepare
+    ```
+    Its download and install all dependencies
+- Build an RPM 
+    ```
+    sfdk engine exec mb2 -t AuroraOS-5.0.0.60-base-aarch64 build
+    ```
+- Sign an RPM
+    ```
+    sfdk engine exec rpmsign-external sign -k regular_key.pem -c regular_cert.pem RPMS/ru.sashikknox.fallout2ce-1.2.1-1.aarch64.rpm
+    ```
+
+
 ## Configuration
 
 The main configuration file is `fallout2.cfg`. There are several important settings you might need to adjust for your installation. Depending on your Fallout distribution main game assets `master.dat`, `critter.dat`, `patch000.dat`, and `data` folder might be either all lowercased, or all uppercased. You can either update `master_dat`, `critter_dat`, `master_patches` and `critter_patches` settings to match your file names, or rename files to match entries in your `fallout2.cfg`.
