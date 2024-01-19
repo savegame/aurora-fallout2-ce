@@ -43,6 +43,7 @@ public:
 
 struct _Button {
     SDL_Rect dst_rect;
+    SDL_FingerID fingerId;
 };
 typedef struct _Button Button;
 
@@ -216,6 +217,72 @@ void AuroraData::initSDLPart(SDL_Renderer *renderer)
 void AuroraData::hideSDLUi(bool hide) 
 {
     d->m_hideUi = hide;
+}
+
+#define containsValue(value, _min, _max) (_min) <= (value) && (_max) >= (value)
+#define containsPoint(rect, _x, _y) containsValue((_x), (rect).x, (rect).x + (rect).w) && containsValue((_y), (rect).y, (rect).y + (rect).h)
+
+bool AuroraData::fingerDown(const SDL_TouchFingerEvent &finger)
+{
+    int x = finger.x * 480;
+    int y = finger.y * 640;
+
+    if (containsPoint((d->m_save.dst_rect), x, y)) {
+        d->m_save.fingerId = finger.fingerId;
+        fprintf(stderr, "SAVE button pressed\n");
+        
+        SDL_Event event;
+        event.type = SDL_KEYDOWN;
+        event.key.state = SDL_PRESSED;
+        event.key.keysym.scancode = SDL_SCANCODE_F6;
+        SDL_PushEvent(&event);
+
+        return true;
+    } else if (containsPoint((d->m_load.dst_rect), x, y)) {
+        d->m_load.fingerId = finger.fingerId;
+        fprintf(stderr, "LOAD button pressed\n");
+
+        SDL_Event event;
+        event.type = SDL_KEYDOWN;
+        event.key.state = SDL_PRESSED;
+        event.key.keysym.scancode = SDL_SCANCODE_F7;
+        SDL_PushEvent(&event);
+
+        return true;
+    }
+    return false;
+}
+bool AuroraData::fingerMotion(const SDL_TouchFingerEvent &finger)
+{
+    return finger.fingerId == d->m_save.fingerId || finger.fingerId == d->m_load.fingerId;
+}
+
+bool AuroraData::fingerUp(const SDL_TouchFingerEvent &finger)
+{
+    if (finger.fingerId == d->m_save.fingerId) {
+        d->m_save.fingerId = -1;
+        fprintf(stderr, "SAVE button up\n");
+
+        SDL_Event event;
+        event.type = SDL_KEYUP;
+        event.key.state = SDL_RELEASED;
+        event.key.keysym.scancode = SDL_SCANCODE_F6;
+        SDL_PushEvent(&event);
+
+        return true;
+    } else if (finger.fingerId == d->m_load.fingerId) {
+        d->m_load.fingerId = -1;
+        fprintf(stderr, "LOAD button up\n");
+
+        SDL_Event event;
+        event.type = SDL_KEYUP;
+        event.key.state = SDL_RELEASED;
+        event.key.keysym.scancode = SDL_SCANCODE_F7;
+        SDL_PushEvent(&event);
+
+        return true;
+    }
+    return false;
 }
 
 void AuroraData::drawSDLUi(SDL_Renderer *renderer)

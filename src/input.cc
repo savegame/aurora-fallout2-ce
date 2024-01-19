@@ -15,6 +15,10 @@
 #include "vcr.h"
 #include "win32.h"
 
+#ifdef AURORAOS
+#include "os/auroraos/aurora_launcher.h"
+#endif
+
 namespace fallout {
 
 typedef struct InputEvent {
@@ -1093,18 +1097,24 @@ void _GNW95_process_message()
             break;
         case SDL_FINGERDOWN:
 #ifdef AURORAOS
+            if (AuroraData::getInstance()->fingerDown(e.tfinger))
+                break;
             modifyFingerPos(e.tfinger);
 #endif
             touch_handle_start(&(e.tfinger));
             break;
         case SDL_FINGERMOTION:
 #ifdef AURORAOS
+            if (AuroraData::getInstance()->fingerMotion(e.tfinger))
+                break;
             modifyFingerPos(e.tfinger);
 #endif
             touch_handle_move(&(e.tfinger));
             break;
         case SDL_FINGERUP:
 #ifdef AURORAOS
+            if (AuroraData::getInstance()->fingerUp(e.tfinger))
+                break;
             modifyFingerPos(e.tfinger);
 #endif
             touch_handle_end(&(e.tfinger));

@@ -51,6 +51,10 @@ public:
     void initSDLPart(SDL_Renderer *renderer);
     void drawSDLUi(SDL_Renderer *renderer);
     void hideSDLUi(bool hide);
+
+    bool fingerDown(const SDL_TouchFingerEvent &finger);
+    bool fingerMotion(const SDL_TouchFingerEvent &finger);
+    bool fingerUp(const SDL_TouchFingerEvent &finger);
 signals:
     void quit();
     void dataChanged();
