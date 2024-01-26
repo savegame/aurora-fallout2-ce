@@ -2280,6 +2280,10 @@ static int _GetComment(int slot)
     } else {
         memset(description, '\0', LOAD_SAVE_DESCRIPTION_LENGTH);
     }
+#ifdef AURORAOS
+    // set default savegame name to "quicksave"
+    strcpy(description, "quicksave\0");
+#endif
 
     int rc;
 
