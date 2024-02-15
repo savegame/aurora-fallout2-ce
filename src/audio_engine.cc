@@ -6,6 +6,16 @@
 
 #include <SDL.h>
 
+#ifdef AURORAOS
+#include <audioresource.h>
+#include <glib.h>
+
+audioresource_t *_audioresource = nullptr; 
+bool _resourceAcquired = false;
+
+static void onAudioResourceAcquired(audioresource_t *, bool, void *);
+#endif
+
 namespace fallout {
 
 #define AUDIO_ENGINE_SOUND_BUFFERS 8
@@ -93,8 +103,31 @@ static void audioEngineMixin(void* userData, Uint8* stream, int length)
     }
 }
 
+#ifdef AURORAOS
+void onAudioResourceAcquired(audioresource_t *, bool ok, void *data) 
+{
+    _resourceAcquired = true;
+    if (!ok) {
+        fprintf(stderr, "Audio resource NOT acquired\n");
+        return;
+    }
+}
+#endif
+
 bool audioEngineInit()
 {
+#ifdef AURORAOS
+    _audioresource = audioresource_init(
+        AUDIO_RESOURCE_GAME,
+        onAudioResourceAcquired,
+        NULL
+    );
+    audioresource_acquire(_audioresource);
+    while(!_resourceAcquired) {
+        g_main_context_iteration(NULL, false);
+    }
+#endif
+
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) == -1) {
         return false;
     }
@@ -107,10 +140,10 @@ bool audioEngineInit()
     desiredSpec.callback = audioEngineMixin;
 
     gAudioEngineDeviceId = SDL_OpenAudioDevice(NULL, 0, &desiredSpec, &gAudioEngineSpec, SDL_AUDIO_ALLOW_ANY_CHANGE);
+
     if (gAudioEngineDeviceId == -1) {
         return false;
     }
-
     SDL_PauseAudioDevice(gAudioEngineDeviceId, 0);
 
     return true;

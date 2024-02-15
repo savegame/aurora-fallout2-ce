@@ -7,7 +7,7 @@ Name=Fallout 2 CE
 Name[en]=Fallout 2 CE
 
 [X-Application]
-Permissions=UserDirs;RemovableMedia
+Permissions=UserDirs;RemovableMedia;Audio
 OrganizationName=ru.sashikknox
 ApplicationName=fallout2ce
 

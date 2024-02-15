@@ -18,6 +18,7 @@ Source0:    %{name}.tar.gz
 BuildRequires:   git
 BuildRequires:   cmake
 BuildRequires:   pkgconfig(audioresource)
+BuildRequires:   pkgconfig(glib-2.0)
 BuildRequires:   pkgconfig(sdl2)
 BuildRequires:   pkgconfig(SDL2_image)
 BuildRequires:   pkgconfig(sailfishsilica)
@@ -42,18 +43,12 @@ BuildRequires:   pkgconfig(wayland-client)
 %description
 Fallout 2 CE - open source game engien for Fallout 2 original game
 
-%prep
-# prepare
-# mkdir -p %{build_folder}
-#cd %{build_folder}
-# cmake -DCMAKE_BUILD_TYPE=Debug -DAURORAOS=ON ..
-
 %build
 echo `pwd`
 moc os/auroraos/aurora_launcher.h -o moc_aurora_launcher.cpp
 mkdir -p %{build_folder}
 cd %{build_folder}
-cmake -DCMAKE_BUILD_TYPE=Debug -DAURORAOS=ON ..
+cmake -DCMAKE_BUILD_TYPE=Release -DAURORAOS=ON ..
 %make_build 
 
 %install
@@ -72,3 +67,4 @@ cd %{build_folder}
 %changelog 
 * Wed Nov 14 2023 sashikknox <sashikknox@gmail.com>
 - build for AuroraOS
+

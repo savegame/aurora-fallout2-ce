@@ -40,11 +40,8 @@ if(AURORAOS)
     )
     find_package (Qt5 COMPONENTS 
         Core 
-        # Network 
         Qml 
-        # Gui 
         Quick 
-        # LinguistTools 
         DBus 
         REQUIRED)
     find_package(PkgConfig REQUIRED)
@@ -52,6 +49,8 @@ if(AURORAOS)
     pkg_check_modules(LIBSDL REQUIRED sdl2)
     pkg_check_modules(SDLIMG REQUIRED SDL2_image)
     pkg_check_modules(WAYLAND_CLIENT REQUIRED wayland-client)
+    pkg_check_modules(AUDIORESOURCE REQUIRED audioresource)
+    pkg_check_modules(GLIB REQUIRED glib-2.0)
     
     include(FindPkgConfig)
     pkg_search_module(AURORA auroraapp REQUIRED)
@@ -66,6 +65,8 @@ if(AURORAOS)
        ${LIBSDL_INCLUDE_DIRS}
        ${SDLIMG_INCLUDE_DIRS}
        ${WAYLAND_CLIENT_INCLUDE_DIRS}
+       ${AUDIORESOURCE_INCLUDE_DIRS}
+       ${GLIB_INCLUDE_DIRS}
        "os/auroraos"
        ${CMAKE_BINARY_DIR}
     )
@@ -77,6 +78,8 @@ if(AURORAOS)
         ${LIBSDL_LDFLAGS}
         ${SDLIMG_LDFLAGS}
         ${WAYLAND_CLIENT_LDFLAGS}
+        ${AUDIORESOURCE_LDFLAGS}
+        ${GLIB_LDFLAGS}
     )
 
     target_sources(${EXECUTABLE_NAME} PUBLIC
