@@ -10,7 +10,3 @@ Name[en]=Fallout 2 CE
 Permissions=UserDirs;RemovableMedia;Audio
 OrganizationName=ru.sashikknox
 ApplicationName=fallout2ce
-
-[X-Aurora-Application]
-IconMode=Crop
-Orientation=LandscapeMask
