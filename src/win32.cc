@@ -17,10 +17,6 @@
 #endif
 
 #ifdef AURORAOS
-#include <QString>
-#include <QScopedPointer>
-#include <QStandardPaths>
-#include <QDebug>
 #include <aurora_launcher.h>
 #endif
 
@@ -70,10 +66,11 @@ int main(int argc, char* argv[])
     chdir(SDL_AndroidGetExternalStoragePath());
 #endif
 #if AURORAOS
-    // AuroraLauncher launcher(0, nullptr);
-    // launcher.exec();
-    QString path = AuroraData::getInstance()->resourcesPath();
-    chdir(path.toLocal8Bit().data());
+    // AuroraLauncher *launcher = new AuroraLauncher(0, nullptr);
+    // launcher->exec();
+    std::string path = AuroraData::getInstance()->resourcesPath();
+    fprintf(stderr, "Run fallout. Path: %s\n", path.c_str());
+    chdir(path.c_str());
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 #endif

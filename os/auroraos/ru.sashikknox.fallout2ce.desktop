@@ -5,6 +5,8 @@ Icon=ru.sashikknox.fallout2ce
 Exec=ru.sashikknox.fallout2ce
 Name=Fallout 2 CE
 Name[en]=Fallout 2 CE
+Categories=Game
+
 
 [X-Application]
 Permissions=UserDirs;RemovableMedia;Audio

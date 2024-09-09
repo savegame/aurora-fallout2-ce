@@ -38,15 +38,19 @@ if(AURORAOS)
         AURORA_ORGNAME="${AURORA_ORGNAME}"
         AURORA_APPNAME="${AURORA_APPNAME}"
     )
-    find_package (Qt5 COMPONENTS 
-        Core 
-        Qml 
-        Quick 
-        DBus 
-        REQUIRED)
+    # find_package (Qt5 COMPONENTS 
+    #     Core 
+    #     Qml 
+    #     Quick 
+    #     DBus 
+    #     REQUIRED)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(SAILFISHSILICA REQUIRED sailfishsilica)
-    pkg_check_modules(LIBSDL REQUIRED sdl2)
+    if (NOT ${LIBSDL_LDFLAGS})
+        pkg_check_modules(LIBSDL REQUIRED sdl2)
+    else()
+        message("Link with SDL2" ${LIBSDL_LDFLAGS})
+    endif()
     pkg_check_modules(SDLIMG REQUIRED SDL2_image)
     pkg_check_modules(WAYLAND_CLIENT REQUIRED wayland-client)
     pkg_check_modules(AUDIORESOURCE REQUIRED audioresource)
@@ -71,7 +75,7 @@ if(AURORAOS)
        ${CMAKE_BINARY_DIR}
     )
     target_link_libraries(${EXECUTABLE_NAME}
-        Qt5::Quick
+        # Qt5::Quick
         # Qt5::DBus
         ${AURORA_LDFLAGS}
         ${SAILFISHSILICA_LDFLAGS}
@@ -476,14 +480,14 @@ elseif(AURORAOS)
             os/auroraos/icon_128.png
             os/auroraos/icon_172.png
             os/auroraos/${EXECUTABLE_NAME}.desktop
-            os/auroraos/qml/main.qml
-            os/auroraos/qml/launcher.qml
+            # os/auroraos/qml/main.qml
+            # os/auroraos/qml/launcher.qml
     )
 
 
-    install(DIRECTORY os/auroraos/qml
-        DESTINATION /usr/share/${EXECUTABLE_NAME}
-    )
+    # install(DIRECTORY os/auroraos/qml
+    #     DESTINATION /usr/share/${EXECUTABLE_NAME}
+    # )
     install(FILES os/auroraos/${EXECUTABLE_NAME}.desktop
         DESTINATION /usr/share/applications
     )

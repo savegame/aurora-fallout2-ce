@@ -1,9 +1,5 @@
 #include "aurora_launcher.h"
-#include <auroraapp.h>
-#include <QtQuick>
-#include <QStandardPaths>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <string>
 
 #include <SDL.h>
 #include <SDL_image.h>
@@ -11,34 +7,33 @@
 class AuroraLauncherPrivate {
 public:
     AuroraLauncherPrivate(AuroraLauncher *parent, int argc, char** argv) 
-        : app(Aurora::Application::application(argc, argv))
-    {
+    { 
+        // Aurora::Application::application(argc, argv);
     }
 
-    ~AuroraLauncherPrivate() {
-        app->deleteLater();
-    }
+    ~AuroraLauncherPrivate() {}
 
     void saveSettings()
     {
-        QString config_path = QStringLiteral("%1/%2/%3/config.json")
-                .arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation))
-                .arg(AURORA_ORGNAME)
-                .arg(AURORA_APPNAME);
-        qDebug() << "SAVE: Config path: " << config_path;
+        // QString config_path = QStringLiteral("%1/%2/%3/config.json")
+        //         .arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation))
+        //         .arg(AURORA_ORGNAME)
+        //         .arg(AURORA_APPNAME);
+        // qDebug() << "SAVE: Config path: " << config_path;
     }
 
     void loadSettings()
     {
-        QString config_path = QStringLiteral("%1/%2/%3/config.json")
-                .arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation))
-                .arg(AURORA_ORGNAME)
-                .arg(AURORA_APPNAME);
-        qDebug() << "LOAD: Config path: " << config_path;
+        // QString config_path = QStringLiteral("%1/%2/%3/config.json")
+        //         .arg(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation))
+        //         .arg(AURORA_ORGNAME)
+        //         .arg(AURORA_APPNAME);
+        // qDebug() << "LOAD: Config path: " << config_path;
     }
 
-    QGuiApplication *app;
     bool m_close = false;
+    // QGuiApplication *app;
+    // QSharedPointer<QQuickView> m_view;
 };
 
 struct _Button {
@@ -51,12 +46,15 @@ class AuroraDataPrivate
 {
 public:
     AuroraDataPrivate() {
-        m_resourcesPath = QStringLiteral("%1/Fallout2").arg(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
+        //m_resourcesPath = QStringLiteral("%1/Fallout2").arg(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
     }
 
-    ~AuroraDataPrivate() {}
+    ~AuroraDataPrivate() {
+        // if (qApp)
+            // qApp->deleteLater();
+    }
 
-    QString m_resourcesPath;
+    std::string m_resourcesPath;
     AuroraData::ResolutionMode m_resolution = AuroraData::Default;
 
     SDL_Texture *m_texture = nullptr;
@@ -67,51 +65,71 @@ public:
     Button m_load;
 };
 
+// AuroraDataHelper::AuroraDataHelper(QObject *parent)
+//     : QObject(parent)
+// {}
+
+// AuroraDataHelper::~AuroraDataHelper() 
+// {}
+
+// AuroraData *AuroraDataHelper::auroraData() 
+// {
+//     return AuroraData::getInstance();
+// }
+
 AuroraLauncher::AuroraLauncher(int argc, char** argv) 
     : d(new AuroraLauncherPrivate(this, argc, argv))
 {
     // ===
-    qDebug() << "AURORA_ORGNAME" << AURORA_ORGNAME;
-    qDebug() << "AURORA_APPNAME" << AURORA_APPNAME;
-    d->app->setOrganizationName(QStringLiteral(AURORA_ORGNAME));
-    d->app->setApplicationName(QStringLiteral(AURORA_APPNAME));
-    // read from settings
-    d->loadSettings();
+    // qDebug() << "AURORA_ORGNAME" << AURORA_ORGNAME;
+    // qDebug() << "AURORA_APPNAME" << AURORA_APPNAME;
+    // d->app->setOrganizationName(QStringLiteral(AURORA_ORGNAME));
+    // d->app->setApplicationName(QStringLiteral(AURORA_APPNAME));
+    // // read from settings
+    // d->loadSettings();
     // =====
-    qApp->setQuitOnLastWindowClosed(false);
-    QSharedPointer<QQuickView> view(new QQuickView());
+    // qApp->setQuitOnLastWindowClosed(false);
+    // d->m_view.reset(new QQuickView());
 
-    qmlRegisterSingletonType<AuroraData>("ru.sashikknox", 1, 0, "AuroraData", AuroraData_singletontype_provider );
+    // qmlRegisterSingletonType<AuroraData>("ru.sashikknox", 1, 0, "AuroraData", AuroraData_singletontype_provider );
+    // qmlRegisterType<AuroraDataHelper>("ru.sashikknox", 1, 0, "AuroraDataHelper");   
 
-    view->setSource(QStringLiteral("/usr/share/%0.%1/qml/main.qml").arg(AURORA_ORGNAME).arg(AURORA_APPNAME));
-    view->show();
+    // d->m_view->setSource(QStringLiteral("/usr/share/%0.%1/qml/main.qml").arg(AURORA_ORGNAME).arg(AURORA_APPNAME));
+    // d->m_view->show();
 
-    QObject::connect(AuroraData::getInstance(), &AuroraData::dataChanged, [this](){
-        d->saveSettings();
-    });
+    // QObject::connect(AuroraData::getInstance(), &AuroraData::dataChanged, [this](){
+        // d->saveSettings();
+    // });
 
-    QObject::connect(AuroraData::getInstance(), &AuroraData::quit, [this, view](){
-        d->m_close = true;
-    });
+    // QObject::connect(AuroraData::getInstance(), &AuroraData::quit, [this](){
+        // qDebug() << "Quit signal!";
+        // d->m_clo/se = true;
+        // qApp->quit();
+    // });
 }
 
 AuroraLauncher::~AuroraLauncher() 
 {
-    d.reset();
+    // d.reset();
+    delete d;
 }
 
 int AuroraLauncher::exec()
 {
-    while(!d->m_close) {
-        d->app->processEvents(QEventLoop::AllEvents);
-    }
-    d->app->exit();
-    qDebug() << "Launcher closed";
+    // while(true) {
+    //     d->app->processEvents(QEventLoop::AllEvents, 1);
+    //     if(d->m_close) {
+    //         qDebug() << "Quit from";
+    //         break;
+    //     }
+    // }
+    // d->app->exit();
+
+    fprintf(stderr, "Launcher closed\n");
 }
 
-AuroraData::AuroraData(QObject *parent)
-    : QObject(parent)
-    , d(new AuroraDataPrivate())
+AuroraData::AuroraData()
+    : d(new AuroraDataPrivate())
 {
 
 }
@@ -124,21 +142,34 @@ AuroraData::~AuroraData()
 
 AuroraData* AuroraData::getInstance()
 {
-    return auroraDataGlobalInstance;
+    static AuroraData* static_auroraData = new AuroraData();
+    return static_auroraData;
 }
 
-QString AuroraData::resourcesPath() const
+void AuroraData::qProcessEvents() 
 {
-    return d->m_resourcesPath;
+    // if (d->m_view->visible()) {
+    //     d->m_view->hide();
+    // }
+    // qApp->processEvents(QEventLoop::AllEvents, 1);
 }
 
-void AuroraData::setResourcesPath(const QString &path)
+std::string AuroraData::resourcesPath() const
+{
+    // return d->m_resourcesPath;
+    std::string path;
+    path += std::string(getenv("HOME"));
+    path += std::string("/Documents/Fallout2");
+    return path;
+}
+
+void AuroraData::setResourcesPath(const std::string &path)
 {
     if (d->m_resourcesPath == path) 
         return;
     d->m_resourcesPath = path;
-    emit resourcesPathChanged();
-    emit dataChanged();
+    // emit resourcesPathChanged();
+    // emit dataChanged();
 }
 
 AuroraData::ResolutionMode AuroraData::resolution() const
@@ -151,8 +182,8 @@ void AuroraData::setResolution(ResolutionMode mode)
     if (mode == d->m_resolution)
         return;
     d->m_resolution;
-    emit resolutionChanged();
-    emit dataChanged();
+    // emit resolutionChanged();
+    // emit dataChanged();
 }
 
 void AuroraData::setOrientation(SDL_DisplayOrientation orientation)
@@ -205,7 +236,7 @@ SDL_DisplayOrientation AuroraData::orientation() const
 
 void AuroraData::initSDLPart(SDL_Renderer *renderer) 
 {
-    Q_ASSERT_X(renderer, "Empty SDL_Renderer pointer", "");
+    // Q_ASSERT_X(renderer, "Empty SDL_Renderer pointer", "");
     
     int r = IMG_Init(IMG_INIT_PNG);
     if (r == 0) {
@@ -300,5 +331,3 @@ void AuroraData::drawSDLUi(SDL_Renderer *renderer)
     src_rect.x = 32;
     SDL_RenderCopyEx(renderer, d->m_texture, &src_rect, &d->m_load.dst_rect, d->m_rotate_angle, NULL, SDL_FLIP_NONE);
 }
-
-#include "moc_aurora_launcher.cpp"

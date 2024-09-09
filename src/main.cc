@@ -42,6 +42,10 @@
 #include "word_wrap.h"
 #include "worldmap.h"
 
+#ifdef AURORAOS
+#include <aurora_launcher.h>
+#endif
+
 namespace fallout {
 
 #define DEATH_WINDOW_WIDTH 640
@@ -116,6 +120,7 @@ int falloutMain(int argc, char** argv)
     if (mainMenuWindowInit() == 0) {
         bool done = false;
         while (!done) {
+            AuroraData::qProcessEvents();
             keyboardReset();
             _gsound_background_play_level_music("07desert", 11);
             mainMenuWindowUnhide(1);

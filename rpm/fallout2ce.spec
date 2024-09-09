@@ -4,30 +4,31 @@ Release:    1
 Version:    1.0
 Group:      Amusements/Games
 License:    GPLv2
-#BuildArch:  %{_arch}
-URL:        https://github.com/savegame/lp-public
+URL:        https://github.com/savegame/aurora-fallout2-ce
 Source0:    %{name}.tar.gz
-# Requires:   SDL2
-# Requires:   libGLESv2
-# Requires:   dbus
-# Requires:   libogg libvorbis
-# Requires:   zlib
-# Requires:   glib2
-# Requires:   libaudioresource
 
-BuildRequires:   git
-BuildRequires:   cmake
-BuildRequires:   pkgconfig(audioresource)
-BuildRequires:   pkgconfig(glib-2.0)
-BuildRequires:   pkgconfig(sdl2)
-BuildRequires:   pkgconfig(SDL2_image)
-BuildRequires:   pkgconfig(sailfishsilica)
-BuildRequires:   pkgconfig(wayland-client)
-# BuildRequires: pulseaudio-devel,  wayland-devel, rsync
-# BuildRequires: libGLESv2-devel, wayland-egl-devel
-# BuildRequires: wayland-protocols-devel, libusb-devel
-# BuildRequires: libxkbcommon-devel, mce-headers, dbus-devel
-# BuildRequires: libogg-devel libvorbis-devel
+%define __provides_exclude_from ^%{_datadir}/%{name}/lib/.*\\.so.*$
+
+BuildRequires: git
+BuildRequires: cmake
+BuildRequires: pkgconfig(audioresource)
+BuildRequires: pkgconfig(glib-2.0)
+# BuildRequires: pkgconfig(sdl2)
+BuildRequires: pkgconfig(SDL2_image)
+BuildRequires: pkgconfig(sailfishsilica)
+BuildRequires: pkgconfig(dbus-1)
+BuildRequires: pkgconfig(mce)
+BuildRequires: pkgconfig(wayland-egl)
+BuildRequires: pkgconfig(wayland-client)
+BuildRequires: pkgconfig(wayland-cursor)
+BuildRequires: pkgconfig(wayland-protocols)
+BuildRequires: pkgconfig(wayland-scanner)
+BuildRequires: pkgconfig(egl)
+BuildRequires: pkgconfig(glesv2)
+BuildRequires: pkgconfig(xkbcommon)
+BuildRequires: pkgconfig(gbm)
+BuildRequires: pkgconfig(libpulse)
+BuildRequires: patchelf
 
 %ifarch armv7hl
 %global build_folder build_arm32
@@ -41,28 +42,56 @@ BuildRequires:   pkgconfig(wayland-client)
 
 
 %description
-Fallout 2 CE - open source game engien for Fallout 2 original game
+Fallout 2 CE - open source game engine for Fallout 2 original game
 
 %build
-echo `pwd`
-moc os/auroraos/aurora_launcher.h -o moc_aurora_launcher.cpp
-mkdir -p %{build_folder}
-cd %{build_folder}
-cmake -DCMAKE_BUILD_TYPE=Release -DAURORAOS=ON ..
+echo "Configure SDL2"
+cmake \
+    -Bbuild_libsdl_%{_arch} \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DSDL_PULSEAUDIO=ON \
+    -DSDL_RPATH=OFF \
+    -DSDL_STATIC=ON \
+    -DSDL_SHARED=OFF \
+    -DSDL_WAYLAND=ON \
+    -DSDL_X11=OFF \
+    -DSDL_DBUS=ON \
+    -DSDL_WAYLAND_LIBDECOR=OFF \
+    libsdl
+
+pushd build_libsdl_%{_arch}
+make -j`nproc`
+rsync -avP include-config-*/SDL2/* include/SDL2/
+popd 
+
+cmake \
+    -B%{build_folder} \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DAURORAOS=ON \
+    -DLIBSDL_INCLUDE_DIRS="`pwd`/build_libsdl_%{_arch}/include" \
+    -DLIBSDL_LDFLAGS="`pwd`/build_libsdl_%{_arch}/libSDL2.a" \
+    .
+
+pushd %{build_folder}
 %make_build 
+popd 
 
 %install
 rm -rf %{buildroot}
-cd %{build_folder}
+pushd %{build_folder}
 %make_install
+popd
+#pushd build_libsdl_%{_arch}
+#install -m 0655 -D -s libSDL2-2.0.so.0.* -t %{buildroot}%{_datadir}/%{name}/lib/
+#popd
+#patchelf --force-rpath --set-rpath %{_datadir}/%{name}/lib %{buildroot}%{_bindir}/%{name}
 
 %files
 %defattr(-,root,root,-)
 %attr(755,root,root) %{_bindir}/%{name}
 %{_datadir}/icons/hicolor/*
 %{_datadir}/applications/%{name}.desktop
-%{_datadir}/%{name}/qml/*
-%{_datadir}/%{name}/ui.png
+%{_datadir}/%{name}
 
 %changelog 
 * Wed Nov 14 2023 sashikknox <sashikknox@gmail.com>

@@ -1,13 +1,15 @@
 #ifndef AURORA_LAUNCHER_H
 #define AURORA_LAUNCHER_H
 
-#include <QObject>
-#include <QScopedPointer>
+// #include <QObject>
+// #include <QScopedPointer>
 #include <memory>
+#include <string>
 #include <SDL.h>
 
 class AuroraLauncherPrivate;
 class AuroraDataPrivate;
+class AuroraData;
 class QQmlEngine;
 class QJSEngine;
 class SDL_Renderer;
@@ -20,27 +22,27 @@ public:
 
     int exec();
 private:
-    QScopedPointer<AuroraLauncherPrivate> d;
+    AuroraLauncherPrivate *d;
 };
 
-class AuroraData : public QObject {
-    Q_OBJECT
-    Q_PROPERTY(QString resourcesPath READ resourcesPath WRITE setResourcesPath NOTIFY resourcesPathChanged)
-    Q_PROPERTY(ResolutionMode resulution READ resolution WRITE setResolution NOTIFY resolutionChanged)
+class AuroraData
+{
 public:
     enum ResolutionMode {
         Default,
         Large
     };
-    Q_ENUM(ResolutionMode);
+    // Q_ENUM(ResolutionMode);
 
-    AuroraData(QObject *parent = nullptr);
+    AuroraData();
     ~AuroraData();
 
     static AuroraData* getInstance();
 
-    QString resourcesPath() const;
-    void setResourcesPath(const QString &path);
+    static void qProcessEvents();
+
+    std::string resourcesPath() const;
+    void setResourcesPath(const std::string &path);
 
     ResolutionMode resolution() const;
     void setResolution(ResolutionMode mode);
@@ -55,23 +57,43 @@ public:
     bool fingerDown(const SDL_TouchFingerEvent &finger);
     bool fingerMotion(const SDL_TouchFingerEvent &finger);
     bool fingerUp(const SDL_TouchFingerEvent &finger);
-signals:
-    void quit();
-    void dataChanged();
-    void resourcesPathChanged();
-    void resolutionChanged();
+// signals:
+//     void quit();
+//     void dataChanged();
+//     void resourcesPathChanged();
+//     void resolutionChanged();
 private:
     AuroraDataPrivate *d;
 };
 
-Q_GLOBAL_STATIC(AuroraData,auroraDataGlobalInstance);
+// class AuroraDataHelper : public QObject class AuroraDataHelper : public QObject 
+// {
+//     Q_OBJECT
+//     Q_PROPERTY(AuroraData* auroraData READ auroraData CONSTANT FINAL)
+// public: 
+//     AuroraDataHelper(QObject *parent = nullptr);
+//     ~AuroraDataHelper();
+    
+//     AuroraData *auroraData();
+// };
+// {
+//     Q_OBJECT
+//     Q_PROPERTY(AuroraData* auroraData READ auroraData CONSTANT FINAL)
+// public: 
+//     AuroraDataHelper(QObject *parent = nullptr);
+//     ~AuroraDataHelper();
+    
+//     AuroraData *auroraData();
+// };
 
-// Second, define the singleton type provider function (callback).
-static QObject *AuroraData_singletontype_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
-{
-    Q_UNUSED(engine)
-    Q_UNUSED(scriptEngine)
-    return AuroraData::getInstance();
-}
+// Q_GLOBAL_STATIC(AuroraData, auroraDataGlobalInstance);
+
+// // Second, define the singleton type provider function (callback).
+// static QObject *AuroraData_singletontype_provider(QQmlEngine *engine, QJSEngine *scriptEngine)
+// {
+//     Q_UNUSED(engine)
+//     Q_UNUSED(scriptEngine)
+//     return AuroraData::getInstance();
+// }
 
 #endif
